@@ -22,7 +22,6 @@
 package org.sakaiproject.calendar.impl;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
@@ -41,10 +40,12 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
@@ -77,30 +78,34 @@ import net.fortuna.ical4j.model.property.TzId;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.model.property.Version;
 
-import org.apache.avalon.framework.logger.ConsoleLogger;
+import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.fop.apps.Driver;
 import org.apache.fop.apps.FOPException;
-import org.apache.fop.apps.Options;
-import org.apache.fop.configuration.Configuration;
-import org.apache.fop.messaging.MessageHandler;
+import org.apache.fop.apps.FOUserAgent;
+import org.apache.fop.apps.Fop;
+import org.apache.fop.apps.FopFactory;
+import org.apache.fop.fonts.substitute.FontQualifier;
+import org.apache.fop.fonts.substitute.FontSubstitution;
+import org.apache.fop.fonts.substitute.FontSubstitutions;
+import org.apache.xmlgraphics.util.MimeConstants;
 import org.sakaiproject.alias.api.Alias;
 import org.sakaiproject.alias.cover.AliasService;
+import org.sakaiproject.assignment.api.AssignmentConstants;
 import org.sakaiproject.authz.api.AuthzPermissionException;
 import org.sakaiproject.authz.api.GroupNotDefinedException;
 import org.sakaiproject.authz.cover.AuthzGroupService;
 import org.sakaiproject.authz.cover.FunctionManager;
 import org.sakaiproject.authz.cover.SecurityService;
-import org.sakaiproject.assignment.api.AssignmentConstants;
 import org.sakaiproject.calendar.api.Calendar;
 import org.sakaiproject.calendar.api.CalendarEdit;
 import org.sakaiproject.calendar.api.CalendarEvent;
+import org.sakaiproject.calendar.api.CalendarEvent.EventAccess;
 import org.sakaiproject.calendar.api.CalendarEventEdit;
 import org.sakaiproject.calendar.api.CalendarEventVector;
 import org.sakaiproject.calendar.api.CalendarService;
 import org.sakaiproject.calendar.api.RecurrenceRule;
-import org.sakaiproject.calendar.api.CalendarEvent.EventAccess;
 import org.sakaiproject.calendar.cover.ExternalCalendarSubscriptionService;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.component.cover.ComponentManager;
@@ -165,8 +170,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
-import java.util.TimeZone;
-import java.util.Map.Entry;
 /**
  * <p>
  * BaseCalendarService is an base implementation of the CalendarService. Extension classes implement object creation, access and storage.
@@ -5332,8 +5335,9 @@ public abstract class BaseCalendarService implements CalendarService, StorageUse
 	protected final static String WEEK_VIEW_XSLT_FILENAME = "schedule.xsl";
 	
 	// FOP Configuration
-	protected final static String FOP_USERCONFIG = "fonts/userconfig.xml";
-	protected final static String FOP_FONTBASEDIR = "fonts";
+	protected final static String FOP_USERCONFIG = "userconfig.xml";
+	protected final static String FOP_DEFAULT_FONT_KEY = "fop.pdf.default.font";
+	protected final static String FOP_DEFAULT_FONT = "Helvetica";
 
 	// Mime Types
 	protected final static String PDF_MIME_TYPE = "application/pdf";
@@ -6088,29 +6092,22 @@ public abstract class BaseCalendarService implements CalendarService, StorageUse
 	 *        XSL file to use to translate the DOM document to FOP
 	 */
 	protected void generatePDF(Document doc, String xslFileName, OutputStream streamOut)
-	{
-		Driver driver = new Driver();
-
-		org.apache.avalon.framework.logger.Logger logger = new ConsoleLogger(ConsoleLogger.LEVEL_ERROR);
-		MessageHandler.setScreenLogger(logger);
-		driver.setLogger(logger);
-
+	{		
+		Fop fop = null;
 		try {
-			String baseDir = getClass().getClassLoader().getResource(FOP_FONTBASEDIR).toString();
-			Configuration.put("fontBaseDir", baseDir);
-			InputStream userConfig = getClass().getClassLoader().getResourceAsStream(FOP_USERCONFIG);
-			new Options(userConfig);
+			DefaultConfigurationBuilder cfgBuilder = new DefaultConfigurationBuilder();
+			Configuration cfg = cfgBuilder.build(getClass().getClassLoader().getResourceAsStream(FOP_USERCONFIG));
+			FopFactory fopFactory = FopFactory.newInstance();
+			fopFactory.setUserConfig(cfg);
+			fopFactory.setStrictValidation(false);
+			FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
+			fopFactory.getFontManager().setFontSubstitutions(getFontSubstitutions());
+			fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, streamOut);
 		}
-      catch (FOPException fe){
-			M_log.warn(this+".generatePDF: ", fe);
-		}
-      catch(Exception e){
+		catch(Exception e){
 			M_log.warn(this+".generatePDF: ", e);
 		}
-
-		driver.setOutputStream(streamOut);
-		driver.setRenderer(Driver.RENDER_PDF);
-
+		
 		try
 		{
 			InputStream in = getClass().getClassLoader().getResourceAsStream(xslFileName);
@@ -6152,7 +6149,7 @@ public abstract class BaseCalendarService implements CalendarService, StorageUse
 			transformer.setParameter("from", rb.getString("event.from"));
 			 
 			transformer.setParameter("sched", rb.getString("sched.for"));
-			transformer.transform(src, new SAXResult(driver.getContentHandler()));
+			transformer.transform(src, new SAXResult(fop.getDefaultHandler()));
 		}
 
 		catch (TransformerException e)
@@ -6161,8 +6158,29 @@ public abstract class BaseCalendarService implements CalendarService, StorageUse
 			M_log.warn(this+".generatePDF(): " + e);
 			return;
 		}
+		catch (FOPException e)
+		{
+			e.printStackTrace();
+			M_log.warn(this+".generatePDF(): " + e);
+			return;
+		}
 	}
 
+	/**
+	 * If a font is set in sakai.properties, then replace the default font.
+	 * Otherwise, use FOP default font.
+	 */
+	private FontSubstitutions getFontSubstitutions()
+	{
+		FontQualifier fromQualifier = new FontQualifier();
+		fromQualifier.setFontFamily("DEFAULT_FONT");
+		FontQualifier toQualifier = new FontQualifier();
+		toQualifier.setFontFamily(m_serverConfigurationService.getString(FOP_DEFAULT_FONT_KEY, FOP_DEFAULT_FONT));
+		FontSubstitutions result = new FontSubstitutions();
+		result.add(new FontSubstitution(fromQualifier, toQualifier));
+		return result;
+	}
+	
 	/**
 	 * Make a full-day time range given a year, month, and day
 	 */

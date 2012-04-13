@@ -14,8 +14,20 @@
 			<td>$validator.escapeHtml($user.DisplayName)</td>
 		</tr>
 		<tr>
-			<th>$tlang.getString("gen.date")</th>
-			<td>$date.toStringLocalFull()</td>
+			<th>$tlang.getString("gen.releasedate")</th>
+			#if($releaseDate)
+				<td>$releaseDate.toStringLocalFull()</td>
+			#else
+				<td></td>
+			#end
+		</tr>
+		<tr>
+			<th>$tlang.getString("gen.retractdate")</th>
+			#if($retractDate)
+				<td>$retractDate.toStringLocalFull()</td>
+			#else
+				<td></td>
+			#end
 		</tr>
 ##		<tr>
 ##			<th>$tlang.getString("meta.public")</th>

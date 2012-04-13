@@ -22,15 +22,17 @@
 			</label>
 			#if(!$user)<input type="text" name="eid" id="eid" #if($valueEid)value="$validator.escapeHtml($valueEid)"#end/>#else$validator.escapeHtml($user.Eid)#end
 		</p>
+		#*
 		<p class="shorttext">
 			<label for="first-name">
 				$tlang.getString("usecre.firnam")
 			</label>
 			<input type="text" name="first-name" id="first-name" #if($user)value="$validator.escapeHtml($user.FirstName)"#elseif($valueFirstName)value="$validator.escapeHtml($valueFirstName)"#end/>
 		</p>
+		*#
 		<p class="shorttext">
 			<label for="last-name">
-				$tlang.getString("usecre.lasnam")
+				$tlang.getString("useconrem.nam")
 			</label>
 			<input type="text" name="last-name" id="last-name" #if($user)value="$validator.escapeHtml($user.LastName)"#elseif($valueLastName)value="$validator.escapeHtml($valueLastName)"#end/>
 		</p>

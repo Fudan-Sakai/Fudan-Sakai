@@ -74,8 +74,7 @@ public class HelpFrameSetRender extends Renderer
       throws IOException
   {
     ResponseWriter writer = context.getResponseWriter();
-    String helpWindowTitle = (String) component.getAttributes().get(
-        "helpWindowTitle");
+    String helpWindowTitle = ServerConfigurationService.getString("ui.service") + " " + component.getAttributes().get("helpWindowTitle");
     String searchToolUrl = (String) component.getAttributes().get(
         "searchToolUrl");
     String tocToolUrl = (String) component.getAttributes().get("tocToolUrl");        

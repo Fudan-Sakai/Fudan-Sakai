@@ -15,7 +15,7 @@
 <xsl:param name="from"/>
         
 <xsl:template match="schedule">
-<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format" font-family="DejaVuSans">
+<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format" font-family="DEFAULT_FONT">
 
   <fo:layout-master-set>
     <!-- page layout -->
@@ -40,8 +40,7 @@
   <fo:static-content flow-name="xsl-region-before">
    
 	
-	<fo:block font-size="12pt" 
-            font-family="DejaVuSans" 
+	<fo:block font-size="12pt"  
             line-height="1cm"
             space-after.optimum="1pt"
             color="black"

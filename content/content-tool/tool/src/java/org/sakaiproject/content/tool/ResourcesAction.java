@@ -5065,15 +5065,25 @@ protected static final String PARAM_PAGESIZE = "collections_per_page";
 		int extIndex = webdav_instructions.indexOf(".html");
 		String webdav_doc = webdav_instructions.substring(0,extIndex).trim();
 		String locale = new ResourceLoader().getLocale().getLanguage();
+		String country = new ResourceLoader().getLocale().getCountry();
 
 		if ((locale == null) || locale.equalsIgnoreCase("en") || (locale.trim().length()==0)){
 			webdav_instructions = ServerConfigurationService.getString("webdav.instructions.url");
 		}else{
-			String locale_webdav_instructions = webdav_doc + "_" + locale + ".html";
-			String filePath = getServletConfig().getServletContext().getRealPath( ".."+locale_webdav_instructions );
-			File localeFile = new File( filePath );
+			String locale_country_webdav_instructions = String.format("%s_%s_%s.html", webdav_doc, locale, country);
+			String filePath;
+			File localeFile;
+			filePath = getServletConfig().getServletContext().getRealPath( ".."+locale_country_webdav_instructions );
+			localeFile = new File(filePath);
+			if (localeFile.exists()){
+				webdav_instructions = locale_country_webdav_instructions;
+			} else {
+				String locale_webdav_instructions = String.format("%s_%s.html", webdav_doc, locale);
+				filePath = getServletConfig().getServletContext().getRealPath( ".."+locale_webdav_instructions );
+				localeFile = new File( filePath );
 			if ( localeFile.exists() )
 				webdav_instructions = locale_webdav_instructions;
+			}
 		}
 
 		context.put("webdav_instructions" ,webdav_instructions);

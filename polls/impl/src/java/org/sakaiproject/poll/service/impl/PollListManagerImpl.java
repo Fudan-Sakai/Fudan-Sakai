@@ -24,6 +24,7 @@ package org.sakaiproject.poll.service.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ import org.sakaiproject.id.api.IdManager;
 import org.sakaiproject.poll.dao.PollDao;
 import org.sakaiproject.poll.logic.ExternalLogic;
 import org.sakaiproject.poll.logic.PollListManager;
+import org.sakaiproject.poll.logic.PollVoteManager;
 import org.sakaiproject.poll.model.Option;
 import org.sakaiproject.poll.model.Poll;
 import org.sakaiproject.poll.model.Vote;
@@ -86,6 +88,11 @@ public class PollListManagerImpl implements PollListManager,EntityTransferrer {
     public void setExternalLogic(ExternalLogic externalLogic) {
 		this.externalLogic = externalLogic;
 	}
+    
+    private PollVoteManager pollVoteManager;
+    public void setPollVoteManager(PollVoteManager pollVoteManager) {
+    	this.pollVoteManager = pollVoteManager;
+    }
 
 	public void init() {
         try {
@@ -212,7 +219,15 @@ public class PollListManagerImpl implements PollListManager,EntityTransferrer {
             throw new SecurityException("user:" + externalLogic.getCurrentuserReference() + " can't delete poll: " + t.getId());
         }
        
-            dao.delete(t);
+
+        // delete votes
+		 Set<Vote> votes = new HashSet<Vote>(pollVoteManager.getAllVotesForPoll(t));
+		 dao.deleteSet(votes);
+		 // delete options
+        Set<Option> options = new HashSet<Option>(getOptionsForPoll(t.getPollId()));
+        dao.deleteSet(options);
+        // delete poll
+        dao.delete(t);
         
         log.info("Poll id " + t.getId() + " deleted");
         externalLogic.postEvent("poll.delete", "poll/site/"
@@ -317,6 +332,8 @@ public class PollListManagerImpl implements PollListManager,EntityTransferrer {
 
     public void deleteOption(Option option) {
         try {
+            Set<Vote> votes = new HashSet<Vote>(pollVoteManager.getAllVotesForOption(option));
+            dao.deleteSet(votes);
             dao.delete(option);
         } catch (DataAccessException e) {
             log.error("Hibernate could not delete: " + e.toString());

@@ -163,53 +163,53 @@ public class PollListManagerTest extends AbstractTransactionalSpringContextTests
     }
 	
     
-    public void testDeletePoll() {
-    	
-    	externalLogicStubb.currentUserId = TestDataPreload.USER_UPDATE;
-    	Poll poll1 = new Poll();
-		poll1.setCreationDate(new Date());
-		poll1.setVoteOpen(new Date());
-		poll1.setVoteClose(new Date());
-		poll1.setDescription("this is some text");
-		poll1.setText("something");
-		poll1.setOwner(TestDataPreload.USER_UPDATE);
-		poll1.setSiteId(TestDataPreload.LOCATION1_ID);
-		
-		
-		
-		//we should not be able to delete a poll that hasn't been saved
-		try {
-			pollListManager.deletePoll(poll1);
-			fail();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		}
-		
-		pollListManager.savePoll(poll1);
-		
-		externalLogicStubb.currentUserId = TestDataPreload.USER_NO_ACCEESS;
-		
-    	try {
-			pollListManager.deletePoll(poll1);
-			fail();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		externalLogicStubb.currentUserId = TestDataPreload.USER_UPDATE;
-    	try {
-			pollListManager.deletePoll(poll1);
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			fail();
-		}
-		
-    }
+//    public void testDeletePoll() {
+//    	
+//    	externalLogicStubb.currentUserId = TestDataPreload.USER_UPDATE;
+//    	Poll poll1 = new Poll();
+//		poll1.setCreationDate(new Date());
+//		poll1.setVoteOpen(new Date());
+//		poll1.setVoteClose(new Date());
+//		poll1.setDescription("this is some text");
+//		poll1.setText("something");
+//		poll1.setOwner(TestDataPreload.USER_UPDATE);
+//		poll1.setSiteId(TestDataPreload.LOCATION1_ID);
+//		
+//		
+//		
+//		//we should not be able to delete a poll that hasn't been saved
+//		try {
+//			pollListManager.deletePoll(poll1);
+//			fail();
+//		} catch (SecurityException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} 
+//		catch (IllegalArgumentException e) {
+//			e.printStackTrace();
+//		}
+//		
+//		pollListManager.savePoll(poll1);
+//		
+//		externalLogicStubb.currentUserId = TestDataPreload.USER_NO_ACCEESS;
+//		
+//    	try {
+//			pollListManager.deletePoll(poll1);
+//			fail();
+//		} catch (SecurityException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		
+//		externalLogicStubb.currentUserId = TestDataPreload.USER_UPDATE;
+//    	try {
+//			pollListManager.deletePoll(poll1);
+//		} catch (SecurityException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			fail();
+//		}
+//		
+//    }
 }

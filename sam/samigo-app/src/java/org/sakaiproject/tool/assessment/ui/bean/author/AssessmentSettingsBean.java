@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -1512,7 +1513,7 @@ public class AssessmentSettingsBean
   public void setDisplayFormat(String displayDateFormat)
   {
 	  this.displayDateFormat = displayDateFormat;
-      this.displayFormat = new SimpleDateFormat(displayDateFormat);
+      this.displayFormat = new SimpleDateFormat(displayDateFormat, Locale.US);
   }
   
   public boolean getIsValidStartDate()

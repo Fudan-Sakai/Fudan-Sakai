@@ -115,7 +115,8 @@ public class ProfileImageLogicImpl implements ProfileImageLogic {
 		//if not allowed, check privacy record
 		if(!allowed) {
 			boolean friend = connectionsLogic.isUserXFriendOfUserY(userUuid, currentUserUuid);
-			allowed = privacyLogic.isUserXProfileImageVisibleByUserY(userUuid, privacy, currentUserUuid, friend);
+			allowed = privacyLogic.isUserXProfileImageVisibleByUserY(userUuid, privacy, currentUserUuid, friend)
+					|| sakaiProxy.isAdminUser();
 		}
 		
 		//default if still not allowed

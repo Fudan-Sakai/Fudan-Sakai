@@ -52,16 +52,11 @@
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
     </dependency>
-<!-- fop: fop, avalon-framework, batik -->
+    <!-- fop -->
     <dependency>
-      <groupId>fop</groupId>
+      <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>fop</artifactId>
-      <version>0.20.5</version>
-    </dependency>
-    <dependency>
-      <groupId>avalon-framework</groupId>
-      <artifactId>avalon-framework</artifactId>
-      <version>20020627</version>
+      <version>1.0</version>
     </dependency>
     <dependency>
       <groupId>ical4j</groupId>

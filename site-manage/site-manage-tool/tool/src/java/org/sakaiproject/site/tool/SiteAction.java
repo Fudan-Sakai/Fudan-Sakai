@@ -34,10 +34,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
-import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -102,8 +102,8 @@ import org.sakaiproject.javax.PagingPosition;
 import org.sakaiproject.site.api.Group;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SitePage;
-import org.sakaiproject.site.api.ToolConfiguration;
 import org.sakaiproject.site.api.SiteService.SortType;
+import org.sakaiproject.site.api.ToolConfiguration;
 import org.sakaiproject.site.cover.SiteService;
 import org.sakaiproject.site.util.Participant;
 import org.sakaiproject.site.util.SiteComparator;
@@ -1414,6 +1414,7 @@ public class SiteAction extends PagedResourceActionII {
 
 			List types = (List) state.getAttribute(STATE_SITE_TYPES);
 			context.put("siteTypes", types);
+			context.put("isSuperUser", SecurityService.isSuperUser());
 
 			// put selected/default site type into context
 			String typeSelected = (String) state.getAttribute(STATE_TYPE_SELECTED);
@@ -3557,7 +3558,8 @@ public class SiteAction extends PagedResourceActionII {
 					Section s = cms.getSection(sectionId);
 					if (s != null)
 					{
-						sectionTitles.put(sectionId, s.getTitle());
+						CourseOffering courseOffering = cms.getCourseOffering(s.getCourseOfferingEid());
+						sectionTitles.put(sectionId, String.format("%s (%s)", s.getTitle(), courseOffering.getAcademicSession().getTitle()));
 					}
 				}
 				catch (Exception e)
@@ -8039,7 +8041,21 @@ public class SiteAction extends PagedResourceActionII {
 				addAlert(state, rb.getString("java.notaccess"));
 				return;
 			}
-
+			
+			// Check whether the remain section is in the same term.
+			// Update the term value.
+			Set<AcademicSession> academicSessions = new HashSet<AcademicSession>();
+			for (String courseSectionEid: (List<String>)providerCourseSectionList) {
+				String courseOfferingEid = cms.getSection(courseSectionEid).getCourseOfferingEid();
+				academicSessions.add(cms.getCourseOffering(courseOfferingEid).getAcademicSession());
+			}
+			if (academicSessions.size() == 1) {
+				AcademicSession term = (AcademicSession)academicSessions.toArray()[0];
+				ResourcePropertiesEdit siteEdit = site.getPropertiesEdit();
+				siteEdit.addProperty(Site.PROP_SITE_TERM, term.getTitle());
+				siteEdit.addProperty(Site.PROP_SITE_TERM_EID, term.getEid());
+				updateCourseSiteSections(state, site.getId(), siteEdit, term);
+			}
 		}
 
 		// the manual request course into properties

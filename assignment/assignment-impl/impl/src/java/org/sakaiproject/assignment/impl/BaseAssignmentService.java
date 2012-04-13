@@ -22,50 +22,41 @@
 package org.sakaiproject.assignment.impl;
 
 import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
-import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
-import org.sakaiproject.contentreview.exception.QueueException;
-import org.sakaiproject.contentreview.exception.ReportException;
-import org.sakaiproject.contentreview.exception.SubmissionException;
-import org.sakaiproject.contentreview.model.ContentReviewItem;
-import org.sakaiproject.contentreview.service.ContentReviewService;
-
-
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.sakaiproject.announcement.api.AnnouncementChannel;
+import org.sakaiproject.announcement.api.AnnouncementService;
 import org.sakaiproject.assignment.api.Assignment;
+import org.sakaiproject.assignment.api.AssignmentConstants;
 import org.sakaiproject.assignment.api.AssignmentContent;
 import org.sakaiproject.assignment.api.AssignmentContentEdit;
 import org.sakaiproject.assignment.api.AssignmentContentNotEmptyException;
@@ -73,35 +64,30 @@ import org.sakaiproject.assignment.api.AssignmentEdit;
 import org.sakaiproject.assignment.api.AssignmentService;
 import org.sakaiproject.assignment.api.AssignmentSubmission;
 import org.sakaiproject.assignment.api.AssignmentSubmissionEdit;
-import org.sakaiproject.assignment.api.AssignmentConstants;
 import org.sakaiproject.assignment.taggable.api.AssignmentActivityProducer;
-import org.sakaiproject.taggable.api.TaggingManager;
-import org.sakaiproject.taggable.api.TaggingProvider;
 import org.sakaiproject.authz.api.AuthzGroup;
 import org.sakaiproject.authz.api.AuthzPermissionException;
 import org.sakaiproject.authz.api.GroupNotDefinedException;
-import org.sakaiproject.authz.api.Member;
-import org.sakaiproject.authz.api.Role;
+import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.cover.AuthzGroupService;
 import org.sakaiproject.authz.cover.FunctionManager;
 import org.sakaiproject.authz.cover.SecurityService;
-import org.sakaiproject.authz.api.SecurityAdvisor;
-import org.sakaiproject.authz.api.SecurityAdvisor.SecurityAdvice;
-import org.sakaiproject.announcement.api.AnnouncementChannel;
-import org.sakaiproject.announcement.api.AnnouncementService;
 import org.sakaiproject.calendar.api.Calendar;
-import org.sakaiproject.calendar.api.CalendarService;
 import org.sakaiproject.calendar.api.CalendarEvent;
-import org.sakaiproject.message.api.MessageService;
+import org.sakaiproject.calendar.api.CalendarService;
 import org.sakaiproject.component.api.ServerConfigurationService;
+import org.sakaiproject.component.cover.ComponentManager;
+import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.content.api.ContentResourceEdit;
-import org.sakaiproject.content.api.ResourceType;
-import org.sakaiproject.content.api.GroupAwareEntity.AccessMode;
-import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.content.util.ZipContentUtil;
-import org.sakaiproject.email.cover.EmailService;
+import org.sakaiproject.contentreview.exception.QueueException;
+import org.sakaiproject.contentreview.exception.ReportException;
+import org.sakaiproject.contentreview.exception.SubmissionException;
+import org.sakaiproject.contentreview.model.ContentReviewItem;
+import org.sakaiproject.contentreview.service.ContentReviewService;
 import org.sakaiproject.email.cover.DigestService;
+import org.sakaiproject.email.cover.EmailService;
 import org.sakaiproject.entity.api.AttachmentContainer;
 import org.sakaiproject.entity.api.Edit;
 import org.sakaiproject.entity.api.Entity;
@@ -128,15 +114,17 @@ import org.sakaiproject.exception.InUseException;
 import org.sakaiproject.exception.PermissionException;
 import org.sakaiproject.exception.ServerOverloadException;
 import org.sakaiproject.exception.TypeException;
-import org.sakaiproject.service.gradebook.shared.GradebookService;
-import org.sakaiproject.service.gradebook.shared.GradebookExternalAssessmentService;
 import org.sakaiproject.id.cover.IdManager;
 import org.sakaiproject.memory.api.Cache;
 import org.sakaiproject.memory.api.CacheRefresher;
 import org.sakaiproject.memory.api.MemoryService;
+import org.sakaiproject.service.gradebook.shared.GradebookExternalAssessmentService;
+import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.site.api.Group;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.cover.SiteService;
+import org.sakaiproject.taggable.api.TaggingManager;
+import org.sakaiproject.taggable.api.TaggingProvider;
 import org.sakaiproject.time.api.Time;
 import org.sakaiproject.time.cover.TimeService;
 import org.sakaiproject.tool.api.SessionBindingEvent;
@@ -146,21 +134,18 @@ import org.sakaiproject.tool.cover.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserNotDefinedException;
 import org.sakaiproject.user.cover.UserDirectoryService;
-import org.sakaiproject.user.api.UserNotDefinedException;
 import org.sakaiproject.util.BaseResourcePropertiesEdit;
-import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.util.Blob;
 import org.sakaiproject.util.DefaultEntityHandler;
-import org.sakaiproject.util.SAXEntityReader;
 import org.sakaiproject.util.EmptyIterator;
 import org.sakaiproject.util.EntityCollections;
 import org.sakaiproject.util.FormattedText;
 import org.sakaiproject.util.ResourceLoader;
+import org.sakaiproject.util.SAXEntityReader;
 import org.sakaiproject.util.SortedIterator;
 import org.sakaiproject.util.StorageUser;
 import org.sakaiproject.util.StringUtil;
 import org.sakaiproject.util.Validator;
-import org.sakaiproject.util.Web;
 import org.sakaiproject.util.Xml;
 import org.sakaiproject.util.commonscodec.CommonsCodecBase64;
 import org.w3c.dom.Document;
@@ -170,6 +155,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
+
 
 /**
  * <p>
@@ -4587,9 +4573,11 @@ public abstract class BaseAssignmentService implements AssignmentService, Entity
 
 	protected void zipSubmissions(String assignmentReference, String assignmentTitle, String gradeTypeString, int typeOfSubmission, Iterator submissions, OutputStream outputStream, StringBuilder exceptionMessage, boolean withStudentSubmissionText, boolean withStudentSubmissionAttachment, boolean withGradeFile, boolean withFeedbackText, boolean withFeedbackComment, boolean withFeedbackAttachment) 
 	{
-	    ZipOutputStream out = null;
+		ZipArchiveOutputStream out = null;
 		try {
-			out = new ZipOutputStream(outputStream);
+			out = new ZipArchiveOutputStream(outputStream);
+			out.setEncoding("UTF8");
+			
 
 			// create the folder structure - named after the assignment's title
 			String root = Validator.escapeZipEntry(assignmentTitle) + Entity.SEPARATOR;
@@ -4657,12 +4645,12 @@ public abstract class BaseAssignmentService implements AssignmentService, Entity
 								// record submission timestamp
 								if (s.getSubmitted() && s.getTimeSubmitted() != null)
 								{
-									ZipEntry textEntry = new ZipEntry(submittersName + "timestamp.txt");
-									out.putNextEntry(textEntry);
+									ZipArchiveEntry textEntry = new ZipArchiveEntry(submittersName + "timestamp.txt");
+									out.putArchiveEntry(textEntry);
 									byte[] b = (s.getTimeSubmitted().toString()).getBytes();
 									out.write(b);
 									textEntry.setSize(b.length);
-									out.closeEntry();
+									out.closeArchiveEntry();
 								}
 								
 								// create the folder structure - named after the submitter's name
@@ -4672,24 +4660,24 @@ public abstract class BaseAssignmentService implements AssignmentService, Entity
 									if (withStudentSubmissionText)
 									{
 										// create the text file only when a text submission is allowed
-										ZipEntry textEntry = new ZipEntry(submittersName + submittersString + "_submissionText" + ZIP_SUBMITTED_TEXT_FILE_TYPE);
-										out.putNextEntry(textEntry);
+										ZipArchiveEntry textEntry = new ZipArchiveEntry(submittersName + submittersString + "_submissionText" + ZIP_SUBMITTED_TEXT_FILE_TYPE);
+										out.putArchiveEntry(textEntry);
 										byte[] text = submittedText.getBytes();
 										out.write(text);
 										textEntry.setSize(text.length);
-										out.closeEntry();
+										out.closeArchiveEntry();
 									}
 								
 									// include student submission feedback text
 									if (withFeedbackText)
 									{
 									// create a feedbackText file into zip
-									ZipEntry fTextEntry = new ZipEntry(submittersName + "feedbackText.html");
-									out.putNextEntry(fTextEntry);
+									ZipArchiveEntry fTextEntry = new ZipArchiveEntry(submittersName + "feedbackText.html");
+									out.putArchiveEntry(fTextEntry);
 									byte[] fText = s.getFeedbackText().getBytes();
 									out.write(fText);
 									fTextEntry.setSize(fText.length);
-									out.closeEntry();
+									out.closeArchiveEntry();
 									}
 								}
 								
@@ -4700,34 +4688,34 @@ public abstract class BaseAssignmentService implements AssignmentService, Entity
 									{
 										// create a attachment folder for the submission attachments
 										String sSubAttachmentFolder = submittersName + rb.getString("stuviewsubm.submissatt") + "/";
-										ZipEntry sSubAttachmentFolderEntry = new ZipEntry(sSubAttachmentFolder);
-										out.putNextEntry(sSubAttachmentFolderEntry);
+										ZipArchiveEntry sSubAttachmentFolderEntry = new ZipArchiveEntry(sSubAttachmentFolder);
+										out.putArchiveEntry(sSubAttachmentFolderEntry);
+										out.closeArchiveEntry();
 										// add all submission attachment into the submission attachment folder
 										zipAttachments(out, submittersName, sSubAttachmentFolder, s.getSubmittedAttachments());
-										out.closeEntry();
 									}
 								}
 								
 								if (withFeedbackComment)
 								{
 									// the comments.txt file to show instructor's comments
-									ZipEntry textEntry = new ZipEntry(submittersName + "comments" + ZIP_COMMENT_FILE_TYPE);
-									out.putNextEntry(textEntry);
+									ZipArchiveEntry textEntry = new ZipArchiveEntry(submittersName + "comments" + ZIP_COMMENT_FILE_TYPE);
+									out.putArchiveEntry(textEntry);
 									byte[] b = FormattedText.encodeUnicode(s.getFeedbackComment()).getBytes();
 									out.write(b);
 									textEntry.setSize(b.length);
-									out.closeEntry();
+									out.closeArchiveEntry();
 								}
 								
 								if (withFeedbackAttachment)
 								{
 									// create an attachment folder for the feedback attachments
 									String feedbackSubAttachmentFolder = submittersName + rb.getString("download.feedback.attachment") + "/";
-									ZipEntry feedbackSubAttachmentFolderEntry = new ZipEntry(feedbackSubAttachmentFolder);
-									out.putNextEntry(feedbackSubAttachmentFolderEntry);
+									ZipArchiveEntry feedbackSubAttachmentFolderEntry = new ZipArchiveEntry(feedbackSubAttachmentFolder);
+									out.putArchiveEntry(feedbackSubAttachmentFolderEntry);
 									// add all feedback attachment folder
 									zipAttachments(out, submittersName, feedbackSubAttachmentFolder, s.getFeedbackAttachments());
-									out.closeEntry();
+									out.closeArchiveEntry();
 								}
 							} // if
 						}
@@ -4747,12 +4735,12 @@ public abstract class BaseAssignmentService implements AssignmentService, Entity
 				if (withGradeFile)
 				{
 					// create a grades.csv file into zip
-					ZipEntry gradesCSVEntry = new ZipEntry(root + "grades.csv");
-					out.putNextEntry(gradesCSVEntry);
+					ZipArchiveEntry gradesCSVEntry = new ZipArchiveEntry(root + "grades.csv");
+					out.putArchiveEntry(gradesCSVEntry);
 					byte[] grades = gradesBuffer.toString().getBytes();
 					out.write(grades);
 					gradesCSVEntry.setSize(grades.length);
-					out.closeEntry();
+					out.closeArchiveEntry();
 				}
 			}
 			else
@@ -4784,7 +4772,7 @@ public abstract class BaseAssignmentService implements AssignmentService, Entity
 
 
 
-	private void zipAttachments(ZipOutputStream out, String submittersName, String sSubAttachmentFolder, List attachments) {
+	private void zipAttachments(ZipArchiveOutputStream out, String submittersName, String sSubAttachmentFolder, List attachments) {
 		int attachedUrlCount = 0;
 		InputStream content = null;
 		for (int j = 0; j < attachments.size(); j++)
@@ -4814,8 +4802,8 @@ public abstract class BaseAssignmentService implements AssignmentService, Entity
 				{
 					bContent = new BufferedInputStream(content, data.length);
 					
-					ZipEntry attachmentEntry = new ZipEntry(sSubAttachmentFolder + displayName);
-					out.putNextEntry(attachmentEntry);
+					ZipArchiveEntry attachmentEntry = new ZipArchiveEntry(sSubAttachmentFolder + displayName);
+					out.putArchiveEntry(attachmentEntry);
 					int bCount = -1;
 					while ((bCount = bContent.read(data, 0, data.length)) != -1) 
 					{
@@ -4824,7 +4812,7 @@ public abstract class BaseAssignmentService implements AssignmentService, Entity
 					
 					try
 					{
-						out.closeEntry(); // The zip entry need to be closed
+						out.closeArchiveEntry();
 					}
 					catch (IOException ioException)
 					{

@@ -126,21 +126,11 @@
        <scope>test</scope>
    </dependency>
    
-   <!-- fop: fop, avalon-framework, batik -->
+   <!-- fop -->
     <dependency>
-      <groupId>fop</groupId>
+      <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>fop</artifactId>
-      <version>0.20.5</version>
-    </dependency>
-    <dependency>
-      <groupId>avalon-framework</groupId>
-      <artifactId>avalon-framework</artifactId>
-      <version>20020627</version>
-    </dependency>
-    <dependency>
-      <groupId>batik</groupId>
-      <artifactId>batik</artifactId>
-      <version>1.5-fop-0.20-5</version>
+      <version>1.0</version>
     </dependency>
     
   </dependencies>

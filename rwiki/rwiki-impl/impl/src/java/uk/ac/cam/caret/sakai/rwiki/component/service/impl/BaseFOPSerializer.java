@@ -43,6 +43,9 @@ import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
+import org.apache.fop.fonts.substitute.FontQualifier;
+import org.apache.fop.fonts.substitute.FontSubstitution;
+import org.apache.fop.fonts.substitute.FontSubstitutions;
 import org.apache.xml.serializer.DOMSerializer;
 import org.apache.xml.serializer.ToXMLSAXHandler;
 import org.sakaiproject.component.cover.ServerConfigurationService;
@@ -125,6 +128,20 @@ public class BaseFOPSerializer extends ToXMLSAXHandler implements ContentHandler
 	}
 
 	/**
+	 * If a font is set in global properties, then replace the default font.
+	 */
+	private FontSubstitutions getFontSubstitutions()
+	{
+		FontQualifier fromQualifier = new FontQualifier();
+		fromQualifier.setFontFamily("DEFAULT_FONT");
+		FontQualifier toQualifier = new FontQualifier();
+		toQualifier.setFontFamily(ServerConfigurationService.getString("fop.pdf.default.font", "Helvetica"));
+		FontSubstitutions result = new FontSubstitutions();
+		result.add(new FontSubstitution(fromQualifier, toQualifier));
+		return result;
+	}
+	
+	/**
 	 * {@inheritDoc}
 	 */
 	public ContentHandler asContentHandler() throws IOException
@@ -138,10 +155,14 @@ public class BaseFOPSerializer extends ToXMLSAXHandler implements ContentHandler
 				stream = getClass()
 				.getResourceAsStream(configfile);
 				Configuration cfg = cfgBuild.build(stream);
-				FopFactory ff = FopFactory.newInstance();
+				final FopFactory ff = FopFactory.newInstance();
 				ff.setUserConfig(cfg);
-				FOUserAgent userAgent = new FOUserAgent(ff);
-
+				if (MimeConstants.MIME_PDF.equals(mimeType))
+				{
+					ff.getFontManager().setFontSubstitutions(getFontSubstitutions());
+				}
+				FOUserAgent userAgent = ff.newFOUserAgent();
+				
 				userAgent.setURIResolver(new URIResolver()
 				{
 
@@ -181,6 +202,11 @@ public class BaseFOPSerializer extends ToXMLSAXHandler implements ContentHandler
 							}
 							else
 							{
+								// use default resolver to resolve font
+								if (base == null)
+								{
+									return ff.resolveURI(href, base);
+								}
 								URI uri = new URI(base);
 								String content = uri.resolve(href).toString();
 								source = new StreamSource(content);

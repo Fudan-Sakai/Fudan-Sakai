@@ -65,6 +65,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <xsl:attribute name="writing-mode"><xsl:value-of select="$writing-mode"/></xsl:attribute>
     <xsl:attribute name="hyphenate"><xsl:value-of select="$hyphenate"/></xsl:attribute>
     <xsl:attribute name="text-align"><xsl:value-of select="$text-align"/></xsl:attribute>
+    <xsl:attribute name="font-family">DEFAULT_FONT</xsl:attribute>
     <!-- specified on fo:root to change the properties' initial values -->
   </xsl:attribute-set>
 

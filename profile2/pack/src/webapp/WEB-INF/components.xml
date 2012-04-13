@@ -204,6 +204,11 @@
         		<value>org/sakaiproject/profile2/emailtemplates/template-messageReply.xml</value>
         		<value>org/sakaiproject/profile2/emailtemplates/template-connectionRequest.xml</value>
         		<value>org/sakaiproject/profile2/emailtemplates/template-connectionConfirm.xml</value>
+        		<value>org/sakaiproject/profile2/emailtemplates/template-messageNew_zh_CN.xml</value>
+        		<value>org/sakaiproject/profile2/emailtemplates/template-messageReply_zh_CN.xml</value>
+        		<value>org/sakaiproject/profile2/emailtemplates/template-connectionRequest_zh_CN.xml</value>
+        		<value>org/sakaiproject/profile2/emailtemplates/template-connectionConfirm_zh_CN.xml</value>
+        		
       		</list>      
     	</constructor-arg>
   	</bean>

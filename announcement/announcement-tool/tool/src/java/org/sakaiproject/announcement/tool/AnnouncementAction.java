@@ -1822,7 +1822,6 @@ public class AnnouncementAction extends PagedResourceActionII
 			} 
 			catch (Exception e) {
 				// not set so set switch appropriately
-				context.put("releaseDate", TimeService.newTime());
 			} 
 		}
 		
@@ -1840,7 +1839,6 @@ public class AnnouncementAction extends PagedResourceActionII
 			} 
 			catch (Exception e) {
 				// not set so set switch appropriately
-				context.put("retractDate", TimeService.newTime());
 			} 
 		}
 		

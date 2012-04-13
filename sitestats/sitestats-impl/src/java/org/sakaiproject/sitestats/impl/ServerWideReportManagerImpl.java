@@ -577,11 +577,11 @@ public class ServerWideReportManagerImpl implements ServerWideReportManager
 		dataset.addSeries (s2);
 
 		TimeSeries mavS1 = MovingAverage.createMovingAverage (s1,
-				"7 day login moving average", 7, 7);
+				msgs.getString("legend_7day_logins"), 7, 7);
 		dataset.addSeries (mavS1);
 
 		TimeSeries mavS2 = MovingAverage.createMovingAverage (s2,
-				"7 day unique login moving average", 7, 7);
+				msgs.getString("legend_7day_unique_logins"), 7, 7);
 		dataset.addSeries (mavS2);
 
 		return dataset;
@@ -828,7 +828,7 @@ public class ServerWideReportManagerImpl implements ServerWideReportManager
 		domainAxis.setLowerMargin (0.01);
 		domainAxis.setUpperMargin (0.01);
         
-        NumberAxis axis1 = new NumberAxis("Total Logins");
+        NumberAxis axis1 = new NumberAxis(msgs.getString("legend_total_logins"));
 		axis1.setStandardTickUnits (NumberAxis.createIntegerTickUnits ());
 		axis1.setLabelPaint(Color.RED);
 		axis1.setTickLabelPaint(Color.RED);
@@ -839,7 +839,7 @@ public class ServerWideReportManagerImpl implements ServerWideReportManager
         plot1.setRangeGridlinePaint(Color.white);
         
         // AXIS 2
-        NumberAxis axis2 = new NumberAxis("Total Unique Users");
+        NumberAxis axis2 = new NumberAxis(msgs.getString("legend_total_unique_users"));
 		axis2.setStandardTickUnits (NumberAxis.createIntegerTickUnits ());
         axis2.setLabelPaint(Color.BLUE);
         axis2.setTickLabelPaint(Color.BLUE);
@@ -865,7 +865,7 @@ public class ServerWideReportManagerImpl implements ServerWideReportManager
         renderer3.setSeriesPaint(1, Color.BLACK);
         renderer3.setSeriesPaint(2, Color.CYAN);
         
-        axis1 = new NumberAxis("count");
+        axis1 = new NumberAxis(msgs.getString("axis_count"));
 		axis1.setStandardTickUnits (NumberAxis.createIntegerTickUnits ());
 
 		XYPlot plot2 = new XYPlot(dataset3, null, axis1, 
@@ -935,7 +935,7 @@ public class ServerWideReportManagerImpl implements ServerWideReportManager
 		domainAxis.setLowerMargin (0.01);
 		domainAxis.setUpperMargin (0.01);
         
-        NumberAxis rangeAxis = new NumberAxis("count");
+        NumberAxis rangeAxis = new NumberAxis(msgs.getString("axis_count"));
 		rangeAxis.setStandardTickUnits (NumberAxis.createIntegerTickUnits ());
 		
         XYPlot plot1 = new XYPlot(dataset1, null, rangeAxis, renderer1);
@@ -955,7 +955,7 @@ public class ServerWideReportManagerImpl implements ServerWideReportManager
         renderer2.setSeriesPaint(1, Color.BLACK);
         renderer2.setSeriesPaint(2, Color.CYAN);
         
-        rangeAxis = new NumberAxis("count");
+        rangeAxis = new NumberAxis(msgs.getString("axis_count"));
 		rangeAxis.setStandardTickUnits (NumberAxis.createIntegerTickUnits ());
 
 		XYPlot plot2 = new XYPlot(dataset2, null, rangeAxis, 
@@ -1031,7 +1031,7 @@ public class ServerWideReportManagerImpl implements ServerWideReportManager
 		domainAxis.setLowerMargin (0.01);
 		domainAxis.setUpperMargin (0.01);
         
-        NumberAxis rangeAxis = new NumberAxis("count");
+        NumberAxis rangeAxis = new NumberAxis(msgs.getString("axis_count"));
 		rangeAxis.setStandardTickUnits (NumberAxis.createIntegerTickUnits ());
 		
         XYPlot plot1 = new XYPlot(dataset1, null, rangeAxis, renderer1);
@@ -1051,7 +1051,7 @@ public class ServerWideReportManagerImpl implements ServerWideReportManager
         renderer2.setSeriesPaint(1, Color.BLACK);
         renderer2.setSeriesPaint(2, Color.CYAN);
         
-        rangeAxis = new NumberAxis("count");
+        rangeAxis = new NumberAxis(msgs.getString("axis_count"));
 		rangeAxis.setStandardTickUnits (NumberAxis.createIntegerTickUnits ());
 
 		XYPlot plot2 = new XYPlot(dataset2, null, rangeAxis, 

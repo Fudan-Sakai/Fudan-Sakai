@@ -62,8 +62,16 @@ public class MemoryAction extends VelocityPortletPaneledAction
 		context.put(Menu.CONTEXT_ACTION, state.getAttribute(STATE_ACTION));
 
 		// put the current available memory into the context
-		context.put("memory", Long.toString(MemoryServiceLocator.getInstance()
-				.getAvailableMemory()));
+//		context.put("memory", Long.toString(MemoryServiceLocator.getInstance()
+//				.getAvailableMemory()));
+//		context.put(name, value)
+		long memory = MemoryServiceLocator.getInstance().getAvailableMemory();
+
+		context.put("memory", memory);
+		context.put("memoryB", memory % 1024);
+		context.put("memoryK", (memory / 1024) % 1024);
+		context.put("memoryM", (memory / 1024 / 1024) % 1024);
+		context.put("memoryG", memory / 1024 / 1024 / 1024);
 
 		// status, if there
 		if (state.getAttribute("status") != null)

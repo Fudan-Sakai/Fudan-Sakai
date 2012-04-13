@@ -80,6 +80,12 @@
       <property name="name"><value>Types/Realms/Roles/Permissions Relationships</value></property>
       <property name="location"><value>/sakai_permissions/arbp.html</value></property>
    </bean>
+   
+   <bean id="annoncementPermissions" class="org.sakaiproject.component.app.help.model.ResourceBean">
+      <property name="docId"><value>aram</value></property>
+      <property name="name"><value>Setting announcement permissions</value></property>
+      <property name="location"><value>/sakai_permissions/aram.html</value></property>
+   </bean>   
          
    
     <bean id="org.sakaiproject.api.app.help.TableOfContents" 
@@ -104,6 +110,7 @@
 					 <ref bean="worksiteSetupControlAccess"/>
 					 <ref bean="changePermissions"/>
 					 <ref bean="permissionsRelationships"/>
+					 <ref bean="annoncementPermissions"/>
                   </list>
                </property>
             </bean>

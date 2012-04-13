@@ -194,7 +194,7 @@ public class JsfUtil {
 		}
 
 		String pattern = (str.indexOf(':') != -1) ? JsfUtil.TIME_PATTERN_LONG : JsfUtil.TIME_PATTERN_SHORT;
-		SimpleDateFormat sdf = new SimpleDateFormat(pattern, new ResourceLoader().getLocale());
+		SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.US);
 		Date date;
 		try {
 			date = sdf.parse(str);

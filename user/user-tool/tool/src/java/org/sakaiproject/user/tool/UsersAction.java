@@ -364,6 +364,9 @@ public class UsersAction extends PagedResourceActionII
 		// attribute "create-user" is true only for New Account tool
 		context.put("pwRequired", state.getAttribute("create-user"));
 
+		// is super user/admin user?
+		context.put("superUser", Boolean.valueOf(SecurityService.isSuperUser()));
+		
 		String value = (String) state.getAttribute("valueEid");
 		if (value != null) context.put("valueEid", value);
 
@@ -1032,8 +1035,11 @@ public class UsersAction extends PagedResourceActionII
 			
 			// eid, pw, type might not be editable
 			if (eid != null) user.setEid(eid);
-			user.setFirstName(firstName);
-			user.setLastName(lastName);
+			// only super user can edit name.
+			if (SecurityService.isSuperUser()) {
+				user.setFirstName(firstName);
+				user.setLastName(lastName);
+			}
 			user.setEmail(email);
 			if (type != null) user.setType(type);
 			

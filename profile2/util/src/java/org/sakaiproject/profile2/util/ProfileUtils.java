@@ -183,7 +183,7 @@ public class ProfileUtils {
 			throw new IllegalArgumentException("Null Argument in Profile.convertStringToDate()");	 
 		}
 		
-		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+		SimpleDateFormat dateFormat = new SimpleDateFormat(format, Locale.US);
 		 
 		try {
 			Date date = dateFormat.parse(dateStr);

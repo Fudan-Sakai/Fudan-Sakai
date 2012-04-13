@@ -36,6 +36,7 @@
 					#end
 				#end
 			</p>	
+			#*
 			<p class="shorttext">
 				<label for="first-name">
 					$tlang.getString("usecre.firnam")
@@ -46,12 +47,17 @@
 				#if($user)$validator.escapeHtml($user.FirstName)#elseif($valueFirstName)$validator.escapeHtml($valueFirstName)#end
 			#end
 			</p>
+			*#
 			<p class="shorttext">
 				<label for="last-name">
-					$tlang.getString("usecre.lasnam")
+					$tlang.getString("useconrem.nam")
 				</label>
 			#if ($service.allowUpdateUserName($user.Id) || !$user)
+				#if($superUser)
 				<input type="text" name="last-name" id="last-name" #if($user)value="$validator.escapeHtml($user.LastName)"#elseif($valueLastName)value="$validator.escapeHtml($valueLastName)"#end />
+				#elseif($user)$validator.escapeHtml($user.LastName)
+				#elseif($valueLastName)$validator.escapeHtml($valueLastName)
+				#end
 			#else
 				#if($user)$validator.escapeHtml($user.LastName)#elseif($valueLastName)$validator.escapeHtml($valueLastName)#end
 			#end
@@ -129,10 +135,12 @@
 				<label>$tlang.getString("useedi.mod")</label>
 				$validator.escapeHtml($user.ModifiedTime.toStringLocalFull())
 			</p>	
+			#*
 			<p class="shorttext">
 				<label>$tlang.getString("useconrem.useuid")</label>
 				$validator.escapeHtml($user.Id)
 			</p>
+			*#
 #end
 			<div class="act">
 				#if($user)

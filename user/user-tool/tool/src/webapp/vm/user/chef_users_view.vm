@@ -28,6 +28,7 @@
 							$validator.escapeHtml($user.Eid)
 						</td>
 					</tr>
+					#*
 					<tr>
 						<th>
 							$tlang.getString("usecre.firnam")
@@ -36,9 +37,10 @@
 							$validator.escapeHtml($user.FirstName)
 						</td>
 					</tr>
+					*#
 					<tr>
 						<th>
-							$tlang.getString("usecre.lasnam")
+							$tlang.getString("useconrem.nam")
 						</th>
 						<td>
 							$validator.escapeHtml($user.LastName)
@@ -52,6 +54,7 @@
 							$validator.escapeHtml($user.Email)
 						</td>
 					</tr>
+					#*
 					<tr>
 						<th>
 							$tlang.getString("usecre.typ")
@@ -60,6 +63,7 @@
 							$validator.escapeHtml($user.Type)
 						</td>
 					</tr>
+					*#
 				</table>
 #if($viewCreatedModifiedBy)
 			<table class="itemSummary" summary="$tlang.getString("usevie.revuseinf")">

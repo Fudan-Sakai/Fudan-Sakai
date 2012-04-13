@@ -38,21 +38,26 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.avalon.framework.logger.ConsoleLogger;
+import org.apache.avalon.framework.configuration.Configuration;
+import org.apache.avalon.framework.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.fop.apps.Driver;
-import org.apache.fop.messaging.MessageHandler;
-
+import org.apache.fop.apps.FOUserAgent;
+import org.apache.fop.apps.Fop;
+import org.apache.fop.apps.FopFactory;
+import org.apache.fop.fonts.substitute.FontQualifier;
+import org.apache.fop.fonts.substitute.FontSubstitution;
+import org.apache.fop.fonts.substitute.FontSubstitutions;
+import org.apache.xmlgraphics.util.MimeConstants;
 import org.sakaiproject.authz.cover.AuthzGroupService;
 import org.sakaiproject.authz.cover.SecurityService;
+import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.cover.SiteService;
 import org.sakaiproject.site.util.Participant;
@@ -62,7 +67,6 @@ import org.sakaiproject.tool.cover.SessionManager;
 import org.sakaiproject.util.BasicAuth;
 import org.sakaiproject.util.RequestFilter;
 import org.sakaiproject.util.ResourceLoader;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -374,35 +378,49 @@ public class SiteInfoToolServlet extends HttpServlet
 	protected void generatePDF(Document doc, OutputStream streamOut)
 	{
 		String xslFileName = "participants-all-attrs.xsl";
-		Driver driver = new Driver();
-
-		org.apache.avalon.framework.logger.Logger logger = new ConsoleLogger(ConsoleLogger.LEVEL_ERROR);
-		MessageHandler.setScreenLogger(logger);
-		driver.setLogger(logger);
-
-		driver.setOutputStream(streamOut);
-		driver.setRenderer(Driver.RENDER_PDF);
-
-		try
-		{
+		String configFileName = "userconfig.xml";
+		DefaultConfigurationBuilder cfgBuilder = new DefaultConfigurationBuilder();
+		try 
+		{		
+			Configuration cfg = cfgBuilder.build(getClass().getClassLoader().getResourceAsStream(configFileName));
+			
+			FopFactory fopFactory = FopFactory.newInstance();
+			fopFactory.setUserConfig(cfg);
+			fopFactory.setStrictValidation(false);
+			FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
+			fopFactory.getFontManager().setFontSubstitutions(getFontSubstitutions());
+			Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, streamOut);
 			InputStream in = getClass().getClassLoader().getResourceAsStream(xslFileName);
 			Transformer transformer = transformerFactory.newTransformer(new StreamSource(in));
+			transformer.setParameter("titleName", rb.getString("sitegen.siteinfolist.title.name"));
+			transformer.setParameter("titleSection", rb.getString("sitegen.siteinfolist.title.section"));
+			transformer.setParameter("titleId", rb.getString("sitegen.siteinfolist.title.id"));
+			transformer.setParameter("titleCredit", rb.getString("sitegen.siteinfolist.title.credit"));
+			transformer.setParameter("titleRole", rb.getString("sitegen.siteinfolist.title.role"));
+			transformer.setParameter("titleStatus", rb.getString("sitegen.siteinfolist.title.status"));
 
 			Source src = new DOMSource(doc);
-         
-			// Kludge: Xalan in JDK 1.4/1.5 does not properly resolve java classes 
-			// (http://xml.apache.org/xalan-j/faq.html#jdk14)
-			// Clean this up in JDK 1.6 and pass ResourceBundle/ArrayList parms
-			//transformer.setParameter("dayNames0", dayNames[0]);
-			transformer.transform(src, new SAXResult(driver.getContentHandler()));
-		}
-
-		catch (TransformerException e)
+			transformer.transform(src, new SAXResult(fop.getDefaultHandler()));
+		} catch (Exception e) 
 		{
 			e.printStackTrace();
 			log.warn(this+".generatePDF(): " + e);
 			return;
 		}
+	}
+	
+	/**
+	 * If a font is set in global properties, then replace the default font.
+	 */
+	private FontSubstitutions getFontSubstitutions()
+	{
+		FontQualifier fromQualifier = new FontQualifier();
+		fromQualifier.setFontFamily("DEFAULT_FONT");
+		FontQualifier toQualifier = new FontQualifier();
+		toQualifier.setFontFamily(ServerConfigurationService.getString("fop.pdf.default.font", "Helvetica"));
+		FontSubstitutions result = new FontSubstitutions();
+		result.add(new FontSubstitution(fromQualifier, toQualifier));
+		return result;
 	}
 	
 }

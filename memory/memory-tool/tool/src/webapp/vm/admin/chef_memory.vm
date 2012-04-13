@@ -8,7 +8,7 @@
 			</div>
 		#end
 	#if ($status)<p class="infoPanel">$validator.escapeHtml($status)</p>#end
-	<div class="instruction">$tlang.getString("memory.vm.ava") $memory</div>
+	<div class="instruction">$tlang.getString("memory.vm.ava") #if($memoryG>0)$memoryG G#end $memoryM M $memoryK K $memoryB B ($memory)</div>
 	<form action="#toolForm("$action")" method="post">
 		<p class="act">
 			<input type="submit" class="active" name="eventSubmit_doReset" value=" $tlang.getString("memory.vm.reset") " />

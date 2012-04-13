@@ -71,9 +71,9 @@
 	#if($menu)#toolbar($menu)#end
 	<div id="davdocs_intro">
 		<h3>$tlang.getString("dav.webdav")</h3>
-		<p>$tlang.getString("dav.graf1").</p>
-		<p>$tlang.getString("dav.graf2") <strong>$tlang.getString("dav.graf3")</strong>. $tlang.getString("dav.graf4").</p>
-		<p>$tlang.getString("dav.graf5") <strong>$tlang.getString("dav.graf6")</strong> $tlang.getString("dav.graf7") <strong>$tlang.getString("dav.graf8")</strong> $tlang.getString("dav.graf9").</p>
+		<p>$tlang.getString("dav.graf1")</p>
+		<p>$tlang.getString("dav.graf2") <strong>$tlang.getString("dav.graf3")</strong> $tlang.getString("dav.graf4")</p>
+		<p>$tlang.getString("dav.graf5") <strong>$tlang.getString("dav.graf6")</strong> $tlang.getString("dav.graf7") <strong>$tlang.getString("dav.graf8")</strong> $tlang.getString("dav.graf9")</p>
 		<div id="davdocs_step1">
 			<p><strong>$tlang.getString("dav.graf10") - </strong> $tlang.getString("dav.graf11"):</p>
 

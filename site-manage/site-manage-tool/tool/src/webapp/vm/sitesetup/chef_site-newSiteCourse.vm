@@ -355,7 +355,7 @@ function redirectBasedOnSelection(){
 				</p>
 			#else
 				<!-- Add Not Listed Courses -->
-				<a href="#" onclick="javascript:submitFindCourse();">$tlang.getString('nscourse.add_course_not_listed')</a>
+##				<a href="#" onclick="javascript:submitFindCourse();">$tlang.getString('nscourse.add_course_not_listed')</a>
 				<p class="act">
 				<input type="hidden" name="option" id="option" value="x" />
 				<input
